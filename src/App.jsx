@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import * as XLSX from 'xlsx'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
@@ -12,8 +12,8 @@ function App() {
   const [editData, setEditData] = useState({})
   const [positions, setPositions] = useState({})
   const [draggingId, setDraggingId] = useState(null)
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
-  const chartRef = useRef(null)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const containerRef = useRef(null)
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0]
@@ -55,6 +55,7 @@ function App() {
         setPeople(allPeople)
         setUnidades(Array.from(uniqueUnidades).sort())
         setPositions({})
+        setEditingId(null)
         if (uniqueUnidades.size > 0) {
           setSelectedUnidad(Array.from(uniqueUnidades).sort()[0])
         }
@@ -101,8 +102,36 @@ function App() {
     return unidadPeople[0] || null
   }
 
-  const handleCellClick = (person) => {
-    if (draggingId) return
+  const handleBoxMouseDown = (e, personId) => {
+    if (editingId) return
+    e.preventDefault()
+    e.stopPropagation()
+    setDraggingId(personId)
+    setDragStart({
+      x: e.clientX - (positions[personId]?.x || 0),
+      y: e.clientY - (positions[personId]?.y || 0)
+    })
+  }
+
+  const handleContainerMouseMove = (e) => {
+    if (!draggingId || !containerRef.current) return
+    
+    const rect = containerRef.current.getBoundingClientRect()
+    const newX = e.clientX - rect.left - dragStart.x
+    const newY = e.clientY - rect.top - dragStart.y
+
+    setPositions(prev => ({
+      ...prev,
+      [draggingId]: { x: newX, y: newY }
+    }))
+  }
+
+  const handleContainerMouseUp = () => {
+    setDraggingId(null)
+  }
+
+  const handleCellClick = (person, e) => {
+    e.stopPropagation()
     setEditingId(person.id)
     setEditData({ ...person })
   }
@@ -115,61 +144,44 @@ function App() {
     const updatedPeople = people.map(p => p.id === editingId ? editData : p)
     setPeople(updatedPeople)
     setEditingId(null)
+    setEditData({})
   }
 
   const handleCancel = () => {
     setEditingId(null)
-  }
-
-  const handleMouseDown = (e, personId) => {
-    if (editingId) return
-    e.preventDefault()
-    setDraggingId(personId)
-    setDragOffset({
-      x: e.clientX - (positions[personId]?.x || 0),
-      y: e.clientY - (positions[personId]?.y || 0)
-    })
-  }
-
-  const handleMouseMove = (e) => {
-    if (!draggingId) return
-    
-    setPositions(prev => ({
-      ...prev,
-      [draggingId]: {
-        x: e.clientX - dragOffset.x,
-        y: e.clientY - dragOffset.y
-      }
-    }))
-  }
-
-  const handleMouseUp = () => {
-    setDraggingId(null)
+    setEditData({})
   }
 
   const getBoxPosition = (personId) => {
     return positions[personId] || { x: 0, y: 0 }
   }
 
-  const renderNode = (person, hierarchy, unidadPeople, parentPos = { x: 0, y: 0 }) => {
+  const renderNode = (person, hierarchy, unidadPeople, level = 0) => {
     const subordinados = hierarchy.get(person.nombre) || []
     const isEditing = editingId === person.id
     const currentData = isEditing ? editData : person
     const pos = getBoxPosition(person.id)
 
     return (
-      <div key={person.id} className="org-node-wrapper">
-        <div 
-          className={`org-box ${draggingId === person.id ? 'dragging' : ''}`}
-          onMouseDown={(e) => handleMouseDown(e, person.id)}
-          onClick={() => handleCellClick(person)}
+      <div 
+        key={person.id} 
+        className="org-node"
+        style={{
+          position: 'relative',
+          marginLeft: `${level * 0}px`
+        }}
+      >
+        <div
+          className={`org-box ${draggingId === person.id ? 'dragging' : ''} ${isEditing ? 'editing' : ''}`}
+          onMouseDown={(e) => handleBoxMouseDown(e, person.id)}
+          onClick={(e) => handleCellClick(person, e)}
           style={{
             transform: `translate(${pos.x}px, ${pos.y}px)`,
-            cursor: draggingId === person.id ? 'grabbing' : 'grab'
+            cursor: 'grab'
           }}
         >
           {isEditing ? (
-            <div className="edit-form">
+            <div className="edit-form" onClick={(e) => e.stopPropagation()}>
               <input
                 type="text"
                 value={currentData.cargo}
@@ -205,11 +217,11 @@ function App() {
 
         {subordinados.length > 0 && (
           <div className="org-children">
-            {subordinados.map((subName, idx) => {
+            {subordinados.map(subName => {
               const sub = unidadPeople.find(p => p.nombre === subName)
               return sub ? (
-                <div key={sub.id} className="org-child-wrapper">
-                  {renderNode(sub, hierarchy, unidadPeople, pos)}
+                <div key={sub.id}>
+                  {renderNode(sub, hierarchy, unidadPeople, level + 1)}
                 </div>
               ) : null
             })}
@@ -251,15 +263,10 @@ function App() {
   const root = findRoot(unidadPeople)
 
   return (
-    <div 
-      className="app"
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-    >
+    <div className="app">
       <div className="header">
         <h1>🎯 Marathon Org Chart - Editable</h1>
-        <p>Organigrama interactivo • Edita y reorganiza como quieras</p>
+        <p>Organigrama interactivo • Arrastra boxes • Edita en línea</p>
       </div>
 
       <div className="card upload-card">
@@ -279,6 +286,7 @@ function App() {
               onChange={(e) => {
                 setSelectedUnidad(e.target.value)
                 setPositions({})
+                setEditingId(null)
               }}
               className="select"
             >
@@ -293,8 +301,21 @@ function App() {
           </div>
 
           <div className="card chart-card">
-            <div id="chart" className="chart-container" ref={chartRef}>
-              {root ? renderNode(root, hierarchy, unidadPeople) : <p>Sin datos</p>}
+            <div 
+              id="chart" 
+              className="chart-container"
+              ref={containerRef}
+              onMouseMove={handleContainerMouseMove}
+              onMouseUp={handleContainerMouseUp}
+              onMouseLeave={handleContainerMouseUp}
+            >
+              {root ? (
+                <div className="org-tree">
+                  {renderNode(root, hierarchy, unidadPeople)}
+                </div>
+              ) : (
+                <p>Sin datos</p>
+              )}
             </div>
           </div>
         </>
