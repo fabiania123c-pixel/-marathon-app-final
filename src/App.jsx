@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import * as XLSX from 'xlsx'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
@@ -10,11 +10,6 @@ function App() {
   const [selectedUnidad, setSelectedUnidad] = useState('')
   const [editingId, setEditingId] = useState(null)
   const [editData, setEditData] = useState({})
-  const [positions, setPositions] = useState({})
-  const [draggingId, setDraggingId] = useState(null)
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const containerRef = useRef(null)
-  const boxRefs = useRef({})
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0]
@@ -55,7 +50,6 @@ function App() {
 
         setPeople(allPeople)
         setUnidades(Array.from(uniqueUnidades).sort())
-        setPositions({})
         setEditingId(null)
         if (uniqueUnidades.size > 0) {
           setSelectedUnidad(Array.from(uniqueUnidades).sort()[0])
@@ -103,37 +97,7 @@ function App() {
     return unidadPeople[0] || null
   }
 
-  const handleBoxMouseDown = (e, personId) => {
-    if (editingId) return
-    e.preventDefault()
-    e.stopPropagation()
-    setDraggingId(personId)
-    setDragStart({
-      x: e.clientX - (positions[personId]?.x || 0),
-      y: e.clientY - (positions[personId]?.y || 0)
-    })
-  }
-
-  const handleContainerMouseMove = (e) => {
-    if (!draggingId || !containerRef.current) return
-    
-    const rect = containerRef.current.getBoundingClientRect()
-    const newX = e.clientX - rect.left - dragStart.x
-    const newY = e.clientY - rect.top - dragStart.y
-
-    setPositions(prev => ({
-      ...prev,
-      [draggingId]: { x: newX, y: newY }
-    }))
-  }
-
-  const handleContainerMouseUp = () => {
-    setDraggingId(null)
-  }
-
-  const handleCellClick = (person, e) => {
-    if (draggingId) return
-    e.stopPropagation()
+  const handleCellClick = (person) => {
     setEditingId(person.id)
     setEditData({ ...person })
   }
@@ -146,41 +110,22 @@ function App() {
     const updatedPeople = people.map(p => p.id === editingId ? editData : p)
     setPeople(updatedPeople)
     setEditingId(null)
-    setEditData({})
   }
 
   const handleCancel = () => {
     setEditingId(null)
-    setEditData({})
   }
 
-  const getBoxPosition = (personId) => {
-    return positions[personId] || { x: 0, y: 0 }
-  }
-
-  const renderNode = (person, hierarchy, unidadPeople, depth = 0) => {
+  const renderNode = (person, hierarchy, unidadPeople) => {
     const subordinados = hierarchy.get(person.nombre) || []
     const isEditing = editingId === person.id
     const currentData = isEditing ? editData : person
-    const pos = getBoxPosition(person.id)
 
     return (
-      <div 
-        key={person.id} 
-        className="org-node"
-        style={{ position: 'relative' }}
-      >
-        <div
-          ref={el => boxRefs.current[person.id] = el}
-          className={`org-box ${draggingId === person.id ? 'dragging' : ''} ${isEditing ? 'editing' : ''}`}
-          onMouseDown={(e) => handleBoxMouseDown(e, person.id)}
-          onClick={(e) => handleCellClick(person, e)}
-          style={{
-            transform: `translate(${pos.x}px, ${pos.y}px)`,
-            cursor: 'grab',
-            position: 'relative',
-            zIndex: draggingId === person.id ? 1000 : 10
-          }}
+      <div className="org-node">
+        <div 
+          className={`org-box ${isEditing ? 'editing' : ''}`}
+          onClick={() => handleCellClick(person)}
         >
           {isEditing ? (
             <div className="edit-form" onClick={(e) => e.stopPropagation()}>
@@ -204,14 +149,14 @@ function App() {
                 placeholder="Jefe"
               />
               <div className="edit-buttons">
-                <button onClick={handleSaveEdit} className="save-btn">✓</button>
-                <button onClick={handleCancel} className="cancel-btn">✕</button>
+                <button onClick={handleSaveEdit} className="save-btn">✓ Guardar</button>
+                <button onClick={handleCancel} className="cancel-btn">✕ Cancelar</button>
               </div>
             </div>
           ) : (
             <>
-              <div className="org-box-title">{currentData.cargo}</div>
-              <div className="org-box-name">{currentData.nombre}</div>
+              <div className="org-box-cargo">{currentData.cargo}</div>
+              <div className="org-box-nombre">{currentData.nombre}</div>
               {currentData.area && <div className="org-box-area">{currentData.area}</div>}
             </>
           )}
@@ -219,11 +164,11 @@ function App() {
 
         {subordinados.length > 0 && (
           <div className="org-children">
-            {subordinados.map((subName, idx) => {
+            {subordinados.map(subName => {
               const sub = unidadPeople.find(p => p.nombre === subName)
               return sub ? (
                 <div key={sub.id} className="org-child">
-                  {renderNode(sub, hierarchy, unidadPeople, depth + 1)}
+                  {renderNode(sub, hierarchy, unidadPeople)}
                 </div>
               ) : null
             })}
@@ -267,8 +212,8 @@ function App() {
   return (
     <div className="app">
       <div className="header">
-        <h1>🎯 Marathon Org Chart</h1>
-        <p>Organigrama interactivo • Arrastra y edita</p>
+        <h1>🎯 Marathon Organigrama Interactivo</h1>
+        <p>Edita datos directamente en los cuadros</p>
       </div>
 
       <div className="card upload-card">
@@ -287,14 +232,13 @@ function App() {
               value={selectedUnidad}
               onChange={(e) => {
                 setSelectedUnidad(e.target.value)
-                setPositions({})
                 setEditingId(null)
               }}
               className="select"
             >
               {unidades.map(u => (
                 <option key={u} value={u}>
-                  {u} ({people.filter(p => p.unidad === u).length} personas)
+                  {u} ({people.filter(p => p.unidad === u).length})
                 </option>
               ))}
             </select>
@@ -303,14 +247,7 @@ function App() {
           </div>
 
           <div className="card chart-card">
-            <div 
-              id="chart" 
-              className="chart-container"
-              ref={containerRef}
-              onMouseMove={handleContainerMouseMove}
-              onMouseUp={handleContainerMouseUp}
-              onMouseLeave={handleContainerMouseUp}
-            >
+            <div id="chart" className="chart-container">
               {root ? (
                 <div className="org-tree">
                   {renderNode(root, hierarchy, unidadPeople)}

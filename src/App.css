@@ -1,7 +1,14 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .app {
   min-height: 100vh;
   padding: 20px;
   background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .header {
@@ -30,7 +37,7 @@
   padding: 24px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
   margin-bottom: 20px;
-  max-width: 1400px;
+  max-width: 1600px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -67,7 +74,7 @@
   border: 2px solid #e5e7eb;
   border-radius: 8px;
   font-size: 14px;
-  min-width: 350px;
+  min-width: 400px;
 }
 
 .select:focus {
@@ -92,8 +99,8 @@
 }
 
 .chart-card {
-  overflow: visible;
-  min-height: 700px;
+  overflow: auto;
+  min-height: 800px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
 }
 
@@ -102,19 +109,17 @@
   padding: 40px;
   position: relative;
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: flex-start;
-  min-height: 700px;
-  overflow: auto;
+  min-height: 800px;
 }
 
 .org-tree {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 80px;
+  gap: 100px;
   position: relative;
-  padding: 20px;
 }
 
 .org-node {
@@ -124,14 +129,68 @@
   position: relative;
 }
 
+.org-box {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  color: white;
+  padding: 18px 20px;
+  border-radius: 8px;
+  min-width: 240px;
+  max-width: 260px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+  transition: all 0.3s;
+  border: 2px solid transparent;
+  cursor: pointer;
+  position: relative;
+  z-index: 10;
+}
+
+.org-box:hover:not(.editing) {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.5);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.org-box.editing {
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.6);
+  transform: scale(1.02);
+}
+
+.org-box-cargo {
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-size: 15px;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.org-box-nombre {
+  font-size: 13px;
+  opacity: 0.95;
+  margin-bottom: 10px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.org-box-area {
+  font-size: 11px;
+  opacity: 0.8;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  padding-top: 8px;
+  margin-top: 8px;
+  font-style: italic;
+}
+
 .org-children {
   display: flex;
   justify-content: center;
-  gap: 100px;
+  gap: 120px;
   flex-wrap: wrap;
-  margin-top: 80px;
+  margin-top: 100px;
   position: relative;
-  padding-top: 60px;
+  padding-top: 80px;
+  width: 100%;
 }
 
 .org-children::before {
@@ -140,24 +199,26 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 3px;
-  height: 60px;
+  width: 4px;
+  height: 80px;
   background: linear-gradient(180deg, #2563eb 0%, #3b82f6 100%);
+  border-radius: 2px;
 }
 
 .org-children::after {
   content: '';
   position: absolute;
-  top: 60px;
+  top: 80px;
   left: 0;
   right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent 0%, #2563eb 20%, #2563eb 80%, transparent 100%);
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #2563eb, transparent);
+  border-radius: 2px;
 }
 
 .org-child {
   position: relative;
-  padding-top: 60px;
+  padding-top: 80px;
 }
 
 .org-child::before {
@@ -166,79 +227,23 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 3px;
-  height: 60px;
+  width: 4px;
+  height: 80px;
   background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
-}
-
-.org-box {
-  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-  color: white;
-  padding: 16px;
-  border-radius: 10px;
-  min-width: 220px;
-  max-width: 240px;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-  transition: all 0.3s;
-  border: 2px solid transparent;
-  user-select: none;
-  position: relative;
-  z-index: 10;
-}
-
-.org-box:hover:not(.editing) {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.org-box.dragging {
-  opacity: 0.9;
-  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.6);
-  transform: scale(1.05) !important;
-  z-index: 1000;
-}
-
-.org-box.editing {
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.5);
-  transform: scale(1.02);
-}
-
-.org-box-title {
-  font-weight: bold;
-  margin-bottom: 6px;
-  font-size: 14px;
-  line-height: 1.3;
-}
-
-.org-box-name {
-  font-size: 13px;
-  opacity: 0.95;
-  margin-bottom: 8px;
-  line-height: 1.3;
-}
-
-.org-box-area {
-  font-size: 11px;
-  opacity: 0.8;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  padding-top: 8px;
-  margin-top: 8px;
-  font-style: italic;
+  border-radius: 2px;
 }
 
 .edit-form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 8px 0;
+  gap: 10px;
+  padding: 0;
 }
 
 .edit-form input {
-  padding: 8px;
+  padding: 10px;
   border: 2px solid #e5e7eb;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 12px;
   color: #1f2937;
   background: white;
@@ -249,19 +254,19 @@
 .edit-form input:focus {
   outline: none;
   border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .edit-buttons {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   justify-content: center;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 .save-btn,
 .cancel-btn {
-  padding: 6px 10px;
+  padding: 8px 14px;
   color: white;
   border: none;
   border-radius: 4px;
@@ -287,6 +292,17 @@
   background: #dc2626;
 }
 
+@media (max-width: 1024px) {
+  .org-children {
+    gap: 60px;
+  }
+
+  .org-box {
+    min-width: 210px;
+    padding: 14px 16px;
+  }
+}
+
 @media (max-width: 768px) {
   .header h1 {
     font-size: 24px;
@@ -297,11 +313,33 @@
   }
 
   .org-box {
-    min-width: 150px;
-    padding: 12px;
+    min-width: 160px;
+    padding: 12px 14px;
+  }
+
+  .org-box-cargo {
+    font-size: 13px;
+  }
+
+  .org-box-nombre {
+    font-size: 12px;
   }
 
   .org-children {
-    gap: 50px;
+    gap: 40px;
+    margin-top: 60px;
+    padding-top: 60px;
+  }
+
+  .org-children::before {
+    height: 60px;
+  }
+
+  .org-child {
+    padding-top: 60px;
+  }
+
+  .org-child::before {
+    height: 60px;
   }
 }
