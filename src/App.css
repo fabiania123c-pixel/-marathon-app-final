@@ -118,7 +118,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 100px;
+  gap: 80px;
   position: relative;
 }
 
@@ -187,12 +187,13 @@
   justify-content: center;
   gap: 120px;
   flex-wrap: wrap;
-  margin-top: 100px;
+  margin-top: 60px;
   position: relative;
-  padding-top: 80px;
+  padding-top: 60px;
   width: 100%;
 }
 
+/* Línea vertical principal desde el padre */
 .org-children::before {
   content: '';
   position: absolute;
@@ -200,15 +201,16 @@
   left: 50%;
   transform: translateX(-50%);
   width: 4px;
-  height: 80px;
+  height: 60px;
   background: linear-gradient(180deg, #2563eb 0%, #3b82f6 100%);
   border-radius: 2px;
 }
 
+/* Línea horizontal conectando hermanos */
 .org-children::after {
   content: '';
   position: absolute;
-  top: 80px;
+  top: 60px;
   left: 0;
   right: 0;
   height: 4px;
@@ -218,17 +220,18 @@
 
 .org-child {
   position: relative;
-  padding-top: 80px;
+  padding-top: 0;
 }
 
+/* Línea vertical desde la horizontal al hijo */
 .org-child::before {
   content: '';
   position: absolute;
-  top: 0;
+  top: -60px;
   left: 50%;
   transform: translateX(-50%);
   width: 4px;
-  height: 80px;
+  height: 60px;
   background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
   border-radius: 2px;
 }
@@ -327,19 +330,16 @@
 
   .org-children {
     gap: 40px;
-    margin-top: 60px;
-    padding-top: 60px;
+    margin-top: 40px;
+    padding-top: 40px;
   }
 
   .org-children::before {
-    height: 60px;
-  }
-
-  .org-child {
-    padding-top: 60px;
+    height: 40px;
   }
 
   .org-child::before {
-    height: 60px;
+    top: -40px;
+    height: 40px;
   }
 }
