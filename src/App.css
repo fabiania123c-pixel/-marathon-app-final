@@ -106,14 +106,13 @@
   align-items: flex-start;
   min-height: 700px;
   overflow: auto;
-  cursor: default;
 }
 
 .org-tree {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 60px;
+  gap: 80px;
   position: relative;
   padding: 20px;
 }
@@ -128,10 +127,48 @@
 .org-children {
   display: flex;
   justify-content: center;
-  gap: 80px;
+  gap: 100px;
   flex-wrap: wrap;
-  margin-top: 60px;
+  margin-top: 80px;
   position: relative;
+  padding-top: 60px;
+}
+
+.org-children::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 60px;
+  background: linear-gradient(180deg, #2563eb 0%, #3b82f6 100%);
+}
+
+.org-children::after {
+  content: '';
+  position: absolute;
+  top: 60px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #2563eb 20%, #2563eb 80%, transparent 100%);
+}
+
+.org-child {
+  position: relative;
+  padding-top: 60px;
+}
+
+.org-child::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 60px;
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
 }
 
 .org-box {
@@ -146,6 +183,8 @@
   transition: all 0.3s;
   border: 2px solid transparent;
   user-select: none;
+  position: relative;
+  z-index: 10;
 }
 
 .org-box:hover:not(.editing) {
@@ -157,7 +196,8 @@
 .org-box.dragging {
   opacity: 0.9;
   box-shadow: 0 12px 30px rgba(37, 99, 235, 0.6);
-  transform: scale(1.05);
+  transform: scale(1.05) !important;
+  z-index: 1000;
 }
 
 .org-box.editing {
@@ -247,10 +287,6 @@
   background: #dc2626;
 }
 
-.connector-line {
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-}
-
 @media (max-width: 768px) {
   .header h1 {
     font-size: 24px;
@@ -266,6 +302,6 @@
   }
 
   .org-children {
-    gap: 40px;
+    gap: 50px;
   }
 }

@@ -14,6 +14,7 @@ function App() {
   const [draggingId, setDraggingId] = useState(null)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const containerRef = useRef(null)
+  const boxRefs = useRef({})
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0]
@@ -157,39 +158,7 @@ function App() {
     return positions[personId] || { x: 0, y: 0 }
   }
 
-  const renderConnectorLine = (fromPos, toPos) => {
-    const x1 = fromPos.x + 110
-    const y1 = fromPos.y + 100
-    const x2 = toPos.x + 110
-    const y2 = toPos.y
-    
-    const midY = (y1 + y2) / 2
-
-    return (
-      <svg key={`line-${fromPos.x}-${fromPos.y}-${toPos.x}-${toPos.y}`} className="connector-line" style={{
-        position: 'absolute',
-        left: Math.min(x1, x2),
-        top: y1,
-        width: Math.abs(x2 - x1) + 10,
-        height: Math.abs(y2 - y1) + 10,
-        pointerEvents: 'none',
-        overflow: 'visible'
-      }}>
-        <line
-          x1={x1 > x2 ? Math.abs(x2 - x1) : 0}
-          y1="0"
-          x2={x1 > x2 ? 0 : Math.abs(x2 - x1)}
-          y2={Math.abs(y2 - y1)}
-          stroke="#2563eb"
-          strokeWidth="3"
-          fill="none"
-          strokeLinecap="round"
-        />
-      </svg>
-    )
-  }
-
-  const renderNode = (person, hierarchy, unidadPeople) => {
+  const renderNode = (person, hierarchy, unidadPeople, depth = 0) => {
     const subordinados = hierarchy.get(person.nombre) || []
     const isEditing = editingId === person.id
     const currentData = isEditing ? editData : person
@@ -202,6 +171,7 @@ function App() {
         style={{ position: 'relative' }}
       >
         <div
+          ref={el => boxRefs.current[person.id] = el}
           className={`org-box ${draggingId === person.id ? 'dragging' : ''} ${isEditing ? 'editing' : ''}`}
           onMouseDown={(e) => handleBoxMouseDown(e, person.id)}
           onClick={(e) => handleCellClick(person, e)}
@@ -248,19 +218,14 @@ function App() {
         </div>
 
         {subordinados.length > 0 && (
-          <div className="org-children" style={{ position: 'relative' }}>
-            {subordinados.map(subName => {
+          <div className="org-children">
+            {subordinados.map((subName, idx) => {
               const sub = unidadPeople.find(p => p.nombre === subName)
-              if (!sub) return null
-              
-              const subPos = getBoxPosition(sub.id)
-              
-              return (
-                <div key={sub.id} style={{ position: 'relative' }}>
-                  {renderConnectorLine(pos, subPos)}
-                  {renderNode(sub, hierarchy, unidadPeople)}
+              return sub ? (
+                <div key={sub.id} className="org-child">
+                  {renderNode(sub, hierarchy, unidadPeople, depth + 1)}
                 </div>
-              )
+              ) : null
             })}
           </div>
         )}
