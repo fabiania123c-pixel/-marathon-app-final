@@ -106,7 +106,8 @@ function App() {
   }
 
   const handleSaveEdit = () => {
-    setPeople(people.map(p => p.id === editingId ? editData : p))
+    const updatedPeople = people.map(p => p.id === editingId ? editData : p)
+    setPeople(updatedPeople)
     setEditingId(null)
   }
 
@@ -114,13 +115,13 @@ function App() {
     setEditingId(null)
   }
 
-  const renderNode = (person, hierarchy, unidadPeople) => {
+  const renderNode = (person, hierarchy, unidadPeople, depth = 0) => {
     const subordinados = hierarchy.get(person.nombre) || []
     const isEditing = editingId === person.id
     const currentData = isEditing ? editData : person
 
     return (
-      <div key={person.id} style={{ textAlign: 'center', margin: '20px 0' }}>
+      <div key={person.id} className="org-node">
         <div 
           className="org-box"
           onClick={() => handleCellClick(person)}
@@ -133,6 +134,7 @@ function App() {
                 value={currentData.cargo}
                 onChange={(e) => handleEditChange('cargo', e.target.value)}
                 placeholder="Cargo"
+                autoFocus
               />
               <input
                 type="text"
@@ -147,24 +149,41 @@ function App() {
                 placeholder="Jefe"
               />
               <div className="edit-buttons">
-                <button onClick={handleSaveEdit} className="save-btn">Guardar</button>
-                <button onClick={handleCancel} className="cancel-btn">Cancelar</button>
+                <button onClick={handleSaveEdit} className="save-btn">✓ Guardar</button>
+                <button onClick={handleCancel} className="cancel-btn">✕ Cancelar</button>
               </div>
             </div>
           ) : (
             <>
               <div className="org-box-title">{currentData.cargo}</div>
               <div className="org-box-name">{currentData.nombre}</div>
-              <div className="org-box-area">{currentData.area}</div>
+              {currentData.area && <div className="org-box-area">{currentData.area}</div>}
             </>
           )}
         </div>
+
         {subordinados.length > 0 && (
-          <div style={{ marginTop: '30px', paddingLeft: '20px', borderLeft: '2px solid #d1d5db' }}>
-            {subordinados.map(subName => {
-              const sub = unidadPeople.find(p => p.nombre === subName)
-              return sub ? renderNode(sub, hierarchy, unidadPeople) : null
-            })}
+          <div className="org-children">
+            {subordinados.length > 1 && (
+              <svg className="org-lines" viewBox="0 0 200 60" preserveAspectRatio="none">
+                <line x1="100" y1="0" x2="100" y2="20" stroke="#d1d5db" strokeWidth="2" />
+                <line x1="0" y1="20" x2="200" y2="20" stroke="#d1d5db" strokeWidth="2" />
+                {subordinados.map((_, i) => {
+                  const x = (i / (subordinados.length - 1)) * 200
+                  return <line key={i} x1={x} y1="20" x2={x} y2="60" stroke="#d1d5db" strokeWidth="2" />
+                })}
+              </svg>
+            )}
+            <div className="org-children-container">
+              {subordinados.map((subName, idx) => {
+                const sub = unidadPeople.find(p => p.nombre === subName)
+                return sub ? (
+                  <div key={sub.id} className="org-child-wrapper">
+                    {renderNode(sub, hierarchy, unidadPeople, depth + 1)}
+                  </div>
+                ) : null
+              })}
+            </div>
           </div>
         )}
       </div>
