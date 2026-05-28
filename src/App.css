@@ -100,7 +100,7 @@
 
 .chart-card {
   overflow: auto;
-  min-height: 800px;
+  min-height: 900px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
 }
 
@@ -111,14 +111,14 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  min-height: 800px;
+  min-height: 900px;
 }
 
 .org-tree {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 80px;
+  gap: 0;
   position: relative;
 }
 
@@ -182,58 +182,34 @@
   font-style: italic;
 }
 
+.org-children-wrapper {
+  position: relative;
+  width: 100%;
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.org-connector {
+  width: 100%;
+  height: 200px;
+  min-width: 300px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
 .org-children {
   display: flex;
   justify-content: center;
-  gap: 120px;
+  gap: 100px;
   flex-wrap: wrap;
-  margin-top: 60px;
-  position: relative;
-  padding-top: 60px;
   width: 100%;
-}
-
-/* Línea vertical principal desde el padre */
-.org-children::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 4px;
-  height: 60px;
-  background: linear-gradient(180deg, #2563eb 0%, #3b82f6 100%);
-  border-radius: 2px;
-}
-
-/* Línea horizontal conectando hermanos */
-.org-children::after {
-  content: '';
-  position: absolute;
-  top: 60px;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, transparent, #2563eb, transparent);
-  border-radius: 2px;
+  margin-top: 0;
+  position: relative;
 }
 
 .org-child {
   position: relative;
-  padding-top: 0;
-}
-
-/* Línea vertical desde la horizontal al hijo */
-.org-child::before {
-  content: '';
-  position: absolute;
-  top: -60px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 4px;
-  height: 60px;
-  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
-  border-radius: 2px;
 }
 
 .edit-form {
@@ -330,16 +306,5 @@
 
   .org-children {
     gap: 40px;
-    margin-top: 40px;
-    padding-top: 40px;
-  }
-
-  .org-children::before {
-    height: 40px;
-  }
-
-  .org-child::before {
-    top: -40px;
-    height: 40px;
   }
 }

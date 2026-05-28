@@ -122,7 +122,7 @@ function App() {
     const currentData = isEditing ? editData : person
 
     return (
-      <div className="org-node">
+      <div className="org-node" key={person.id}>
         <div 
           className={`org-box ${isEditing ? 'editing' : ''}`}
           onClick={() => handleCellClick(person)}
@@ -149,8 +149,8 @@ function App() {
                 placeholder="Jefe"
               />
               <div className="edit-buttons">
-                <button onClick={handleSaveEdit} className="save-btn">✓ Guardar</button>
-                <button onClick={handleCancel} className="cancel-btn">✕ Cancelar</button>
+                <button onClick={handleSaveEdit} className="save-btn">✓</button>
+                <button onClick={handleCancel} className="cancel-btn">✕</button>
               </div>
             </div>
           ) : (
@@ -163,15 +163,26 @@ function App() {
         </div>
 
         {subordinados.length > 0 && (
-          <div className="org-children">
-            {subordinados.map(subName => {
-              const sub = unidadPeople.find(p => p.nombre === subName)
-              return sub ? (
-                <div key={sub.id} className="org-child">
-                  {renderNode(sub, hierarchy, unidadPeople)}
-                </div>
-              ) : null
-            })}
+          <div className="org-children-wrapper">
+            <svg className="org-connector" viewBox="0 0 1000 200" preserveAspectRatio="none">
+              <line x1="500" y1="0" x2="500" y2="50" stroke="#2563eb" strokeWidth="4" />
+              <line x1="0" y1="50" x2="1000" y2="50" stroke="#2563eb" strokeWidth="4" />
+              {subordinados.map((_, idx) => {
+                const x = (idx / (subordinados.length > 1 ? subordinados.length - 1 : 1)) * 1000
+                return <line key={idx} x1={x} y1="50" x2={x} y2="200" stroke="#2563eb" strokeWidth="4" />
+              })}
+            </svg>
+            
+            <div className="org-children">
+              {subordinados.map(subName => {
+                const sub = unidadPeople.find(p => p.nombre === subName)
+                return sub ? (
+                  <div key={sub.id} className="org-child">
+                    {renderNode(sub, hierarchy, unidadPeople)}
+                  </div>
+                ) : null
+              })}
+            </div>
           </div>
         )}
       </div>
@@ -212,7 +223,7 @@ function App() {
   return (
     <div className="app">
       <div className="header">
-        <h1>🎯 Marathon Organigrama Interactivo</h1>
+        <h1>🎯 Marathon Organigrama</h1>
         <p>Edita datos directamente en los cuadros</p>
       </div>
 
