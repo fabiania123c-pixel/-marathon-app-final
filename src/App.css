@@ -93,7 +93,7 @@
 
 .chart-card {
   overflow: visible;
-  min-height: 600px;
+  min-height: 700px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
 }
 
@@ -104,7 +104,7 @@
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
-  min-height: 600px;
+  min-height: 700px;
   overflow: auto;
   cursor: default;
 }
@@ -113,64 +113,25 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 80px;
+  gap: 60px;
   position: relative;
   padding: 20px;
 }
 
 .org-node {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 60px;
+  position: relative;
 }
 
 .org-children {
   display: flex;
   justify-content: center;
-  gap: 60px;
+  gap: 80px;
   flex-wrap: wrap;
+  margin-top: 60px;
   position: relative;
-  width: 100%;
-}
-
-.org-children::before {
-  content: '';
-  position: absolute;
-  top: -50px;
-  left: 50%;
-  width: 3px;
-  height: 50px;
-  background: linear-gradient(180deg, #2563eb 0%, #3b82f6 100%);
-  transform: translateX(-50%);
-}
-
-.org-children > div {
-  position: relative;
-}
-
-.org-children > div::before {
-  content: '';
-  position: absolute;
-  top: -50px;
-  left: 50%;
-  width: 3px;
-  height: 50px;
-  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
-  transform: translateX(-50%);
-}
-
-.org-children > div:first-child::after {
-  content: '';
-  position: absolute;
-  top: -50px;
-  left: 50%;
-  right: auto;
-  height: 3px;
-  width: 200%;
-  background: linear-gradient(90deg, #2563eb, #3b82f6, #2563eb);
-  transform: translateX(-50%);
 }
 
 .org-box {
@@ -184,9 +145,7 @@
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
   transition: all 0.3s;
   border: 2px solid transparent;
-  position: relative;
   user-select: none;
-  z-index: 10;
 }
 
 .org-box:hover:not(.editing) {
@@ -198,7 +157,6 @@
 .org-box.dragging {
   opacity: 0.9;
   box-shadow: 0 12px 30px rgba(37, 99, 235, 0.6);
-  z-index: 1000;
   transform: scale(1.05);
 }
 
@@ -233,45 +191,44 @@
 .edit-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   padding: 8px 0;
-  z-index: 100;
 }
 
 .edit-form input {
-  padding: 10px;
+  padding: 8px;
   border: 2px solid #e5e7eb;
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 12px;
   color: #1f2937;
   background: white;
   width: 100%;
   font-weight: 500;
-  min-width: 200px;
 }
 
 .edit-form input:focus {
   outline: none;
   border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
 .edit-buttons {
   display: flex;
   gap: 6px;
   justify-content: center;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .save-btn,
 .cancel-btn {
-  padding: 8px 12px;
+  padding: 6px 10px;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
+  flex: 1;
 }
 
 .save-btn {
@@ -290,6 +247,10 @@
   background: #dc2626;
 }
 
+.connector-line {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
 @media (max-width: 768px) {
   .header h1 {
     font-size: 24px;
@@ -305,16 +266,6 @@
   }
 
   .org-children {
-    gap: 30px;
-  }
-
-  .org-children::before {
-    height: 30px;
-    top: -30px;
-  }
-
-  .org-children > div::before {
-    height: 30px;
-    top: -30px;
+    gap: 40px;
   }
 }

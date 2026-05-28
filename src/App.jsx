@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import * as XLSX from 'xlsx'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
@@ -131,6 +131,7 @@ function App() {
   }
 
   const handleCellClick = (person, e) => {
+    if (draggingId) return
     e.stopPropagation()
     setEditingId(person.id)
     setEditData({ ...person })
@@ -156,7 +157,39 @@ function App() {
     return positions[personId] || { x: 0, y: 0 }
   }
 
-  const renderNode = (person, hierarchy, unidadPeople, level = 0) => {
+  const renderConnectorLine = (fromPos, toPos) => {
+    const x1 = fromPos.x + 110
+    const y1 = fromPos.y + 100
+    const x2 = toPos.x + 110
+    const y2 = toPos.y
+    
+    const midY = (y1 + y2) / 2
+
+    return (
+      <svg key={`line-${fromPos.x}-${fromPos.y}-${toPos.x}-${toPos.y}`} className="connector-line" style={{
+        position: 'absolute',
+        left: Math.min(x1, x2),
+        top: y1,
+        width: Math.abs(x2 - x1) + 10,
+        height: Math.abs(y2 - y1) + 10,
+        pointerEvents: 'none',
+        overflow: 'visible'
+      }}>
+        <line
+          x1={x1 > x2 ? Math.abs(x2 - x1) : 0}
+          y1="0"
+          x2={x1 > x2 ? 0 : Math.abs(x2 - x1)}
+          y2={Math.abs(y2 - y1)}
+          stroke="#2563eb"
+          strokeWidth="3"
+          fill="none"
+          strokeLinecap="round"
+        />
+      </svg>
+    )
+  }
+
+  const renderNode = (person, hierarchy, unidadPeople) => {
     const subordinados = hierarchy.get(person.nombre) || []
     const isEditing = editingId === person.id
     const currentData = isEditing ? editData : person
@@ -166,10 +199,7 @@ function App() {
       <div 
         key={person.id} 
         className="org-node"
-        style={{
-          position: 'relative',
-          marginLeft: `${level * 0}px`
-        }}
+        style={{ position: 'relative' }}
       >
         <div
           className={`org-box ${draggingId === person.id ? 'dragging' : ''} ${isEditing ? 'editing' : ''}`}
@@ -177,7 +207,9 @@ function App() {
           onClick={(e) => handleCellClick(person, e)}
           style={{
             transform: `translate(${pos.x}px, ${pos.y}px)`,
-            cursor: 'grab'
+            cursor: 'grab',
+            position: 'relative',
+            zIndex: draggingId === person.id ? 1000 : 10
           }}
         >
           {isEditing ? (
@@ -202,8 +234,8 @@ function App() {
                 placeholder="Jefe"
               />
               <div className="edit-buttons">
-                <button onClick={handleSaveEdit} className="save-btn">✓ Guardar</button>
-                <button onClick={handleCancel} className="cancel-btn">✕ Cancelar</button>
+                <button onClick={handleSaveEdit} className="save-btn">✓</button>
+                <button onClick={handleCancel} className="cancel-btn">✕</button>
               </div>
             </div>
           ) : (
@@ -216,14 +248,19 @@ function App() {
         </div>
 
         {subordinados.length > 0 && (
-          <div className="org-children">
+          <div className="org-children" style={{ position: 'relative' }}>
             {subordinados.map(subName => {
               const sub = unidadPeople.find(p => p.nombre === subName)
-              return sub ? (
-                <div key={sub.id}>
-                  {renderNode(sub, hierarchy, unidadPeople, level + 1)}
+              if (!sub) return null
+              
+              const subPos = getBoxPosition(sub.id)
+              
+              return (
+                <div key={sub.id} style={{ position: 'relative' }}>
+                  {renderConnectorLine(pos, subPos)}
+                  {renderNode(sub, hierarchy, unidadPeople)}
                 </div>
-              ) : null
+              )
             })}
           </div>
         )}
@@ -265,8 +302,8 @@ function App() {
   return (
     <div className="app">
       <div className="header">
-        <h1>🎯 Marathon Org Chart - Editable</h1>
-        <p>Organigrama interactivo • Arrastra boxes • Edita en línea</p>
+        <h1>🎯 Marathon Org Chart</h1>
+        <p>Organigrama interactivo • Arrastra y edita</p>
       </div>
 
       <div className="card upload-card">
