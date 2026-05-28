@@ -185,7 +185,8 @@
 .org-children-wrapper {
   position: relative;
   width: 100%;
-  margin-top: 30px;
+  margin-top: 0;
+  padding-top: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -193,19 +194,23 @@
 
 .org-connector {
   width: 100%;
-  height: 200px;
+  height: 300px;
   min-width: 300px;
+  margin-top: -30px;
+  padding-top: 30px;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  display: block;
 }
 
 .org-children {
   display: flex;
   justify-content: center;
-  gap: 100px;
+  gap: 140px;
   flex-wrap: wrap;
   width: 100%;
   margin-top: 0;
   position: relative;
+  padding: 0 40px;
 }
 
 .org-child {
