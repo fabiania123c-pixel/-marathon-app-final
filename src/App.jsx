@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import * as XLSX from 'xlsx'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
@@ -10,6 +10,10 @@ function App() {
   const [selectedUnidad, setSelectedUnidad] = useState('')
   const [editingId, setEditingId] = useState(null)
   const [editData, setEditData] = useState({})
+  const [positions, setPositions] = useState({})
+  const [draggingId, setDraggingId] = useState(null)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const chartRef = useRef(null)
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0]
@@ -50,6 +54,7 @@ function App() {
 
         setPeople(allPeople)
         setUnidades(Array.from(uniqueUnidades).sort())
+        setPositions({})
         if (uniqueUnidades.size > 0) {
           setSelectedUnidad(Array.from(uniqueUnidades).sort()[0])
         }
@@ -97,6 +102,7 @@ function App() {
   }
 
   const handleCellClick = (person) => {
+    if (draggingId) return
     setEditingId(person.id)
     setEditData({ ...person })
   }
@@ -115,17 +121,52 @@ function App() {
     setEditingId(null)
   }
 
-  const renderNode = (person, hierarchy, unidadPeople, depth = 0) => {
+  const handleMouseDown = (e, personId) => {
+    if (editingId) return
+    e.preventDefault()
+    setDraggingId(personId)
+    setDragOffset({
+      x: e.clientX - (positions[personId]?.x || 0),
+      y: e.clientY - (positions[personId]?.y || 0)
+    })
+  }
+
+  const handleMouseMove = (e) => {
+    if (!draggingId) return
+    
+    setPositions(prev => ({
+      ...prev,
+      [draggingId]: {
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y
+      }
+    }))
+  }
+
+  const handleMouseUp = () => {
+    setDraggingId(null)
+  }
+
+  const getBoxPosition = (personId) => {
+    return positions[personId] || { x: 0, y: 0 }
+  }
+
+  const renderNode = (person, hierarchy, unidadPeople, parentPos = { x: 0, y: 0 }) => {
     const subordinados = hierarchy.get(person.nombre) || []
     const isEditing = editingId === person.id
     const currentData = isEditing ? editData : person
+    const pos = getBoxPosition(person.id)
 
     return (
-      <div key={person.id} className="org-node">
+      <div key={person.id} className="org-node-wrapper">
         <div 
-          className="org-box"
+          className={`org-box ${draggingId === person.id ? 'dragging' : ''}`}
+          onMouseDown={(e) => handleMouseDown(e, person.id)}
           onClick={() => handleCellClick(person)}
-          style={{ cursor: 'pointer' }}
+          style={{
+            transform: `translate(${pos.x}px, ${pos.y}px)`,
+            cursor: draggingId === person.id ? 'grabbing' : 'grab'
+          }}
         >
           {isEditing ? (
             <div className="edit-form">
@@ -164,26 +205,14 @@ function App() {
 
         {subordinados.length > 0 && (
           <div className="org-children">
-            {subordinados.length > 1 && (
-              <svg className="org-lines" viewBox="0 0 200 60" preserveAspectRatio="none">
-                <line x1="100" y1="0" x2="100" y2="20" stroke="#d1d5db" strokeWidth="2" />
-                <line x1="0" y1="20" x2="200" y2="20" stroke="#d1d5db" strokeWidth="2" />
-                {subordinados.map((_, i) => {
-                  const x = (i / (subordinados.length - 1)) * 200
-                  return <line key={i} x1={x} y1="20" x2={x} y2="60" stroke="#d1d5db" strokeWidth="2" />
-                })}
-              </svg>
-            )}
-            <div className="org-children-container">
-              {subordinados.map((subName, idx) => {
-                const sub = unidadPeople.find(p => p.nombre === subName)
-                return sub ? (
-                  <div key={sub.id} className="org-child-wrapper">
-                    {renderNode(sub, hierarchy, unidadPeople, depth + 1)}
-                  </div>
-                ) : null
-              })}
-            </div>
+            {subordinados.map((subName, idx) => {
+              const sub = unidadPeople.find(p => p.nombre === subName)
+              return sub ? (
+                <div key={sub.id} className="org-child-wrapper">
+                  {renderNode(sub, hierarchy, unidadPeople, pos)}
+                </div>
+              ) : null
+            })}
           </div>
         )}
       </div>
@@ -222,10 +251,15 @@ function App() {
   const root = findRoot(unidadPeople)
 
   return (
-    <div className="app">
+    <div 
+      className="app"
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+    >
       <div className="header">
         <h1>🎯 Marathon Org Chart - Editable</h1>
-        <p>Selecciona una Unidad Organizativa y edita los organigramas</p>
+        <p>Organigrama interactivo • Edita y reorganiza como quieras</p>
       </div>
 
       <div className="card upload-card">
@@ -242,7 +276,10 @@ function App() {
           <div className="card controls-card">
             <select
               value={selectedUnidad}
-              onChange={(e) => setSelectedUnidad(e.target.value)}
+              onChange={(e) => {
+                setSelectedUnidad(e.target.value)
+                setPositions({})
+              }}
               className="select"
             >
               {unidades.map(u => (
@@ -256,7 +293,7 @@ function App() {
           </div>
 
           <div className="card chart-card">
-            <div id="chart" className="chart-container">
+            <div id="chart" className="chart-container" ref={chartRef}>
               {root ? renderNode(root, hierarchy, unidadPeople) : <p>Sin datos</p>}
             </div>
           </div>
