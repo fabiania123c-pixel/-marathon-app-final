@@ -164,15 +164,15 @@ function App() {
 
         {subordinados.length > 0 && (
           <div className="org-children-wrapper">
-            <svg className="org-connector" viewBox="0 0 1000 300" preserveAspectRatio="none">
-              {/* Línea vertical desde padre */}
-              <line x1="500" y1="0" x2="500" y2="80" stroke="#2563eb" strokeWidth="4" />
+            <svg className="org-connector" viewBox="0 0 1000 250" preserveAspectRatio="none">
+              {/* Línea vertical desde padre - START AQUÍ en y=0 */}
+              <line x1="500" y1="0" x2="500" y2="60" stroke="#2563eb" strokeWidth="4" strokeLinecap="round" />
               {/* Línea horizontal conectora */}
-              <line x1="0" y1="80" x2="1000" y2="80" stroke="#2563eb" strokeWidth="4" />
+              <line x1="0" y1="60" x2="1000" y2="60" stroke="#2563eb" strokeWidth="4" strokeLinecap="round" />
               {/* Líneas verticales a cada subordinado */}
               {subordinados.map((_, idx) => {
                 const x = (idx / (subordinados.length > 1 ? subordinados.length - 1 : 1)) * 1000
-                return <line key={idx} x1={x} y1="80" x2={x} y2="300" stroke="#2563eb" strokeWidth="4" />
+                return <line key={idx} x1={x} y1="60" x2={x} y2="250" stroke="#2563eb" strokeWidth="4" strokeLinecap="round" />
               })}
             </svg>
             
